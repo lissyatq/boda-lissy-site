@@ -1,60 +1,83 @@
 // =====================================================================
 // Lógica de la vista pública del invitado (index.html)
+// El diseño (Canva) se muestra como imágenes; el módulo de RSVP se
+// inserta en vivo dentro de la sección "Confirmación de asistencia".
 // =====================================================================
-
-const el = (html) => {
-  const t = document.createElement("template");
-  t.innerHTML = html.trim();
-  return t.content.firstElementChild;
-};
-
-function fmtDate() {
-  try {
-    const d = new Date(SITE_CONFIG.fecha);
-    return d.toLocaleDateString("es-CO", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
-  } catch (e) {
-    return SITE_CONFIG.fechaTexto || "";
-  }
-}
-
-function coverHTML() {
-  if (SITE_CONFIG.imagenPortada) {
-    return `
-      <img class="cover-image" src="${SITE_CONFIG.imagenPortada}" alt="Invitación"
-           onerror="this.outerHTML = document.getElementById('cover-placeholder-tpl').innerHTML;">
-    `;
-  }
-  return document.getElementById("cover-placeholder-tpl").innerHTML;
-}
-
-function renderShell(bodyHtml) {
-  const page = document.getElementById("page");
-  page.innerHTML = `
-    <template id="cover-placeholder-tpl">
-      <div class="cover-placeholder">
-        <div class="serif names">${SITE_CONFIG.novios}</div>
-        <div class="date">${SITE_CONFIG.fechaTexto}</div>
-      </div>
-    </template>
-    <div class="cover">
-      ${coverHTML()}
-      <div class="divider"></div>
-      <p style="color:var(--ink-soft); font-size:14px; line-height:1.6; margin: 0 8px;">${SITE_CONFIG.mensajeBienvenida}</p>
-    </div>
-    ${bodyHtml}
-  `;
-}
 
 function getCodeFromUrl() {
   const params = new URLSearchParams(window.location.search);
   return (params.get("c") || "").trim().toUpperCase();
 }
 
+// ---- Cuenta regresiva en vivo (superpuesta sobre la imagen del diseño) ----
+function startCountdown() {
+  const box = document.getElementById("countdown-box");
+  if (!box) return;
+  const target = new Date(SITE_CONFIG.fecha).getTime();
+
+  function render() {
+    let diff = Math.max(0, target - Date.now());
+    const d = Math.floor(diff / 86400000); diff -= d * 86400000;
+    const h = Math.floor(diff / 3600000); diff -= h * 3600000;
+    const m = Math.floor(diff / 60000); diff -= m * 60000;
+    const s = Math.floor(diff / 1000);
+    const pad = (n) => String(n).padStart(2, "0");
+    box.innerHTML = `
+      <div class="cd-row">
+        <div class="cd-unit"><span>${pad(d)}</span><label>Días</label></div>
+        <div class="cd-unit"><span>${pad(h)}</span><label>Horas</label></div>
+        <div class="cd-unit"><span>${pad(m)}</span><label>Min</label></div>
+        <div class="cd-unit"><span>${pad(s)}</span><label>Seg</label></div>
+      </div>`;
+  }
+  render();
+  setInterval(render, 1000);
+}
+
+// ---- Estructura general: diseño + módulo de RSVP en vivo ----------------
+function renderInvitationShell() {
+  const page = document.getElementById("page");
+  page.innerHTML = `
+    <div class="design-section">
+      <img src="invitacion-1-hero.png" alt="${SITE_CONFIG.novios}">
+      <a class="overlay-link" href="${SITE_CONFIG.cancionUrl}" target="_blank" rel="noopener"
+         title="Escuchar nuestra canción"
+         style="left:34.4%; top:9.8%; width:31.1%; height:85.9%;"></a>
+      <div class="overlay-countdown" id="countdown-box"
+           style="left:71%; top:19.8%; width:27%; height:13%;"></div>
+    </div>
+
+    <div class="design-section">
+      <img src="invitacion-2-detalles.png" alt="Ceremonia, recepción, código de vestimenta y regalos">
+      <a class="overlay-link" href="${SITE_CONFIG.mapaCeremonia}" target="_blank" rel="noopener"
+         title="Mapa de la ceremonia"
+         style="left:10.5%; top:39%; width:9.2%; height:5.5%;"></a>
+      <a class="overlay-link" href="${SITE_CONFIG.mapaRecepcion}" target="_blank" rel="noopener"
+         title="Mapa de la recepción"
+         style="left:10.5%; top:80.7%; width:9.2%; height:5.5%;"></a>
+      <a class="overlay-link" href="${SITE_CONFIG.albumUrl}" target="_blank" rel="noopener"
+         title="Álbum de fotos colaborativo"
+         style="left:70.2%; top:69.8%; width:29%; height:25.1%;"></a>
+    </div>
+
+    <div class="design-section">
+      <img src="invitacion-3-titulo.png" alt="Confirmación de asistencia">
+    </div>
+
+    <div id="rsvp-body"></div>
+
+    <div class="design-section">
+      <img src="invitacion-4-foto.png" alt="${SITE_CONFIG.novios}">
+    </div>
+  `;
+  startCountdown();
+}
+
 // ---- Vista: pedir código -------------------------------------------
 function showCodeEntry(errorMsg) {
-  renderShell(`
+  const body = document.getElementById("rsvp-body");
+  body.innerHTML = `
     <div class="section">
-      <h2 class="serif">Confirma tu asistencia</h2>
       <p style="color:var(--ink-soft); font-size:14px;">Ingresa el código que recibiste en tu invitación.</p>
       <div class="field">
         <input type="text" id="code-input" placeholder="Ej: GARCIA24" autocapitalize="characters">
@@ -64,7 +87,7 @@ function showCodeEntry(errorMsg) {
       </div>
       ${errorMsg ? `<div class="msg error">${errorMsg}</div>` : ""}
     </div>
-  `);
+  `;
   const input = document.getElementById("code-input");
   const go = () => {
     const code = input.value.trim().toUpperCase();
@@ -75,24 +98,12 @@ function showCodeEntry(errorMsg) {
   input.addEventListener("keydown", (e) => { if (e.key === "Enter") go(); });
 }
 
-// ---- Vista: detalles del evento (debajo del RSVP) -------------------
-function eventDetailsHTML() {
-  return `
-    <div class="section">
-      <h2 class="serif">Detalles</h2>
-      <div class="detail-row"><span class="label">Fecha</span><span>${fmtDate()}</span></div>
-      <div class="detail-row"><span class="label">Ceremonia</span><span>${SITE_CONFIG.lugarCeremonia}</span></div>
-      <div class="detail-row"><span class="label">Recepción</span><span>${SITE_CONFIG.lugarRecepcion}</span></div>
-      <div class="detail-row"><span class="label">Código de vestimenta</span><span>${SITE_CONFIG.dressCode}</span></div>
-    </div>
-  `;
-}
-
 // ---- Vista: RSVP ya respondido --------------------------------------
 function showAlreadyResponded(guest, code) {
   const isConfirmed = guest.status === "confirmed";
   const companions = guest.companions || [];
-  renderShell(`
+  const body = document.getElementById("rsvp-body");
+  body.innerHTML = `
     <div class="section center">
       <span class="badge ${isConfirmed ? "confirmed" : "declined"}">
         ${isConfirmed ? "Asistencia confirmada" : "No podrá asistir"}
@@ -109,8 +120,7 @@ function showAlreadyResponded(guest, code) {
         <button class="btn outline" id="edit-rsvp">Cambiar mi respuesta</button>
       </div>
     </div>
-    ${eventDetailsHTML()}
-  `);
+  `;
   document.getElementById("edit-rsvp").addEventListener("click", () => showRsvpForm(guest, code));
 }
 
@@ -129,7 +139,8 @@ function companionBlockHTML(index, value) {
 
 function showRsvpForm(guest, code) {
   const maxCompanions = Math.max(0, (guest.allowed_passes || 1) - 1);
-  renderShell(`
+  const body = document.getElementById("rsvp-body");
+  body.innerHTML = `
     <div class="section center">
       <h2 class="serif">Hola, ${guest.name}</h2>
       <p style="color:var(--ink-soft); font-size:14px;">¿Nos acompañarás en este día tan especial?</p>
@@ -162,9 +173,7 @@ function showRsvpForm(guest, code) {
       </div>
       <div id="no-msg"></div>
     </div>
-
-    ${eventDetailsHTML()}
-  `);
+  `;
 
   let companions = [];
 
@@ -252,6 +261,7 @@ function showRsvpForm(guest, code) {
 
 // ---- Arranque ---------------------------------------------------------
 async function init() {
+  renderInvitationShell();
   const code = getCodeFromUrl();
   if (!code) {
     showCodeEntry();

@@ -167,6 +167,67 @@ label {
 .msg.error { background: #f5e8e6; color: var(--red); }
 .msg.ok { background: #e6f0e9; color: var(--green); }
 
+/* ---- Diseño de invitación (imágenes de Canva) ---- */
+
+.design-section {
+  position: relative;
+  line-height: 0;
+  background: #ede6de;
+  container-type: inline-size;
+}
+
+.design-section img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.overlay-link {
+  position: absolute;
+  display: block;
+  cursor: pointer;
+}
+
+#rsvp-body {
+  background: #ede6de;
+}
+
+.overlay-countdown {
+  position: absolute;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.cd-row {
+  display: flex;
+  gap: 4vw;
+  width: 100%;
+  justify-content: center;
+}
+
+.cd-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #323232;
+}
+
+.cd-unit span {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 600;
+  font-size: 6.2cqw;
+  line-height: 1;
+}
+
+.cd-unit label {
+  margin: 2px 0 0;
+  font-size: 1.6cqw;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+}
+
 /* ---- Cover / RSVP specific ---- */
 
 .cover {
