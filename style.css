@@ -197,11 +197,13 @@ label {
   display: flex;
   align-items: flex-start;
   justify-content: center;
+  container-type: inline-size;
+  overflow: hidden;
 }
 
 .cd-row {
   display: flex;
-  gap: 4vw;
+  gap: 2cqw;
   width: 100%;
   justify-content: center;
 }
@@ -211,21 +213,24 @@ label {
   flex-direction: column;
   align-items: center;
   color: #323232;
+  min-width: 0;
 }
 
 .cd-unit span {
   font-family: 'Cormorant Garamond', serif;
   font-weight: 600;
-  font-size: 6.2cqw;
+  font-size: 17cqw;
   line-height: 1;
+  white-space: nowrap;
 }
 
 .cd-unit label {
   margin: 2px 0 0;
-  font-size: 1.6cqw;
-  letter-spacing: 0.06em;
+  font-size: 3.4cqw;
+  letter-spacing: 0.04em;
   color: var(--ink-soft);
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 /* ---- Cover / RSVP specific ---- */
